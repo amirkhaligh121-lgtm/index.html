@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>جدول کنترل ارجاعات درون‌متنی</title>
+<style>
+  :root {
+    --bg: #f7f5f2;
+    --panel: #ffffff;
+    --ink: #24211d;
+    --muted: #6b6459;
+    --line: #e4ddd2;
+    --accent: #7a5c3e;
+    --accent-soft: #efe6d8;
+    --flag: #fdecec;
+    --flag-border: #e8b4b4;
+    --good: #eef4ec;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 28px;
+    font-family: "Vazirmatn","Tahoma","Segoe UI",sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 4px;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 13.5px;
+    margin-bottom: 18px;
+  }
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 14px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .toolbar input[type="text"] {
+    flex: 1;
+    min-width: 200px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13.5px;
+    background: #fdfcfb;
+  }
+  .toolbar button {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .toolbar button.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .stats {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .stats b { color: var(--ink); }
+  .stats .flagcount { color: #b23b3b; }
+  .table-wrap {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: auto;
+    max-height: 78vh;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 13px;
+  }
+  thead th {
+    position: sticky;
+    top: 0;
+    background: var(--accent);
+    color: #fff;
+    padding: 10px 8px;
+    text-align: center;
+    font-weight: 600;
+    white-space: nowrap;
+    z-index: 2;
+    border-left: 1px solid rgba(255,255,255,0.15);
+  }
+  tbody td {
+    padding: 8px 9px;
+    border-bottom: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+    vertical-align: top;
+  }
+  tbody tr:hover { background: #faf7f2; }
+  .col-idx { text-align: center; color: var(--muted); width: 36px; }
+  .col-page { text-align: center; width: 60px; font-weight: 600; }
+  .col-srcpage { text-align: center; width: 70px; color: var(--muted); }
+  .col-cite { width: 190px; font-family: "Consolas","Courier New",monospace; font-size: 12.5px; }
+  .col-title { width: 260px; }
+  .col-title.missing { color: #b23b3b; font-weight: 600; }
+  .col-sentence { min-width: 320px; line-height: 1.7; color: #3c382f; }
+  .col-check { text-align: center; width: 50px; }
+  .check-box { width: 17px; height: 17px; cursor: pointer; }
+  tr.flag-row { background: var(--flag); }
+  tr.flag-row:hover { background: #fbe3e3; }
+  tr.hidden { display: none; }
+  footer {
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>جدول کنترل ارجاعات درون‌متنی مقاله</h1>
+<div class="subtitle">استخراج‌شده از متن‌های مشخص‌شده با رنگ آبی در فایل ورد — هر منبع در ردیف مستقل خودش قرار دارد</div>
+
+<div class="toolbar">
+  <input type="text" id="searchBox" placeholder="جستجو در ارجاع، منبع یا متن مرتبط...">
+  <button id="btnAll" class="active">همه (120)</button>
+  <button id="btnFlag">فقط یافت‌نشده‌ها (15)</button>
+</div>
+
+<div class="stats">
+  <span>تعداد کل ارجاعات (پس از تفکیک منابع): <b>120</b></span>
+  <span class="flagcount">ارجاعاتی که در فهرست منابع یافت نشد: <b>15</b></span>
+</div>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>ردیف</th>
+      <th>صفحه مقاله</th>
+      <th>ارجاع درون‌متنی</th>
+      <th>صفحه منبع</th>
+      <th>نام کتاب/مقاله</th>
+      <th>متن مرتبط</th>
+      <th>اصالت منبع</th>
+    </tr>
+  </thead>
+  <tbody id="tbody">
+    
+      <tr class="" data-page="2" data-found="true">
+        <td class="col-idx">1</td>
+        <td class="col-page">2</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(الیاده، 1372)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">رساله در تاریخ ادیان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">از این منظر، نمادها را می‌توان زبان مشترک فرهنگ‌های باستانی دانست؛ زبانی که از طریق آن باورها، آیین‌ها و ساختارهای فکری جوامع انسانی بازنمایی شده‌اند (الیاده، 1372).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="2" data-found="true">
+        <td class="col-idx">2</td>
+        <td class="col-page">2</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(Kohl, 1979)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">The “World-Economy” of Western Asia in the Third Millennium B</td>
+        <td class="col-sentence">در این دوره، هم‌زمان با گسترش شهرنشینی، توسعه مبادلات اقتصادی و شکل‌گیری شبکه‌های گسترده ارتباطی میان فلات ایران، میان‌رودان و آسیای میانه، انتقال و اشتراک‌گذاری اندیشه‌های دینی و نمادهای اساطیری نیز افزایش یافت (Kohl, 1979) .</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="2" data-found="true">
+        <td class="col-idx">3</td>
+        <td class="col-page">2</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(Winkelman, 2013)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">Transformation of Near Eastern Animal Motifs in Murghabo-Bactrian Bronze Age Art</td>
+        <td class="col-sentence">(Winkelman, 2013) این فراوانی، بیانگر جایگاه ویژه مار در ذهنیت اسطوره‌ای مردمان آن عصر است.</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="2" data-found="true">
+        <td class="col-idx">4</td>
+        <td class="col-page">2</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(بهار، 1376)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">از اسطوره تا تاریخ</td>
+        <td class="col-sentence">پژوهشگران اسطوره‌شناسی و باستان‌شناسی، مار را نمادی چندوجهی دانسته‌اند که با مفاهیمی چون باروری، برکت، حفاظت، آب، تجدید حیات، جاودانگی و نیروهای زیرزمینی ارتباط دارد (بهار، 1376؛ دوبوکور، 1373؛ الیاده، 1375).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="2" data-found="true">
+        <td class="col-idx">5</td>
+        <td class="col-page">2</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(دوبوکور، 1373)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">رمزهای زنده جهان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">پژوهشگران اسطوره‌شناسی و باستان‌شناسی، مار را نمادی چندوجهی دانسته‌اند که با مفاهیمی چون باروری، برکت، حفاظت، آب، تجدید حیات، جاودانگی و نیروهای زیرزمینی ارتباط دارد (بهار، 1376؛ دوبوکور، 1373؛ الیاده، 1375).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="2" data-found="true">
+        <td class="col-idx">6</td>
+        <td class="col-page">2</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(الیاده، 1375)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">اسطوره، رؤیا، راز (ترجمه رؤیا منجم)</td>
+        <td class="col-sentence">پژوهشگران اسطوره‌شناسی و باستان‌شناسی، مار را نمادی چندوجهی دانسته‌اند که با مفاهیمی چون باروری، برکت، حفاظت، آب، تجدید حیات، جاودانگی و نیروهای زیرزمینی ارتباط دارد (بهار، 1376؛ دوبوکور، 1373؛ الیاده، 1375).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="2" data-found="true">
+        <td class="col-idx">7</td>
+        <td class="col-page">2</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(میرچا الیاده، 1372)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">رساله در تاریخ ادیان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">میرچا الیاده (1372؛ 1375) در پژوهش‌های خود درباره تاریخ ادیان و نمادهای اساطیری، مار را نمادی مرتبط با تجدید حیات، نیروهای زیرزمینی، آب و جاودانگی دانسته و ارتباط آن را با چرخه‌های مرگ و زندگی مورد بررسی قرار داده است.</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="2" data-found="true">
+        <td class="col-idx">8</td>
+        <td class="col-page">2</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(میرچا الیاده، 1375)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">اسطوره، رؤیا، راز (ترجمه رؤیا منجم)</td>
+        <td class="col-sentence">میرچا الیاده (1372؛ 1375) در پژوهش‌های خود درباره تاریخ ادیان و نمادهای اساطیری، مار را نمادی مرتبط با تجدید حیات، نیروهای زیرزمینی، آب و جاودانگی دانسته و ارتباط آن را با چرخه‌های مرگ و زندگی مورد بررسی قرار داده است.</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="2" data-found="true">
+        <td class="col-idx">9</td>
+        <td class="col-page">2</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(دوبوکور، 1373)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">رمزهای زنده جهان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">دوبوکور (1373) در کتاب رمزهای زنده جهان، مار را از مهم‌ترین نمادهای مرتبط با باروری، زنانگی و قدرت‌های زاینده طبیعت معرفی کرده و به پیوند گسترده آن با الهه‌بانوان و آیین‌های باروری در تمدن‌های کهن اشاره نموده است.</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="2" data-found="true">
+        <td class="col-idx">10</td>
+        <td class="col-page">2</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(بهار، 1376)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">از اسطوره تا تاریخ</td>
+        <td class="col-sentence">بهار (1376) در بررسی اساطیر ایرانی، نقش مار را در ارتباط با آب، بارندگی، حاصل‌خیزی و نگهبانی از چشمه‌ها و منابع حیاتی مورد توجه قرار داده است.</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="4" data-found="true">
+        <td class="col-idx">11</td>
+        <td class="col-page">4</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(دادور و منصوری، 1391)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">درآمدی بر اسطوره‌ها و نمادهای ایران و هند در عهد باستان</td>
+        <td class="col-sentence">دادور و منصوری (1391) در پژوهش خود درباره اسطوره‌ها و نمادهای ایران و هند باستان، به ارتباط نماد مار با ماه و نیروهای قمری پرداخته و اشتراکات مفهومی این دو نماد را در حوزه باروری، جاودانگی و تجدید حیات مورد بررسی قرار داده‌اند.</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="4" data-found="true">
+        <td class="col-idx">12</td>
+        <td class="col-page">4</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(باصفا و همکاران، 1395)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">بررسی شمایل‌شناسی نقش مار در حوزه‌های فرهنگی ایران و آسیای میانه در عصر مفرغ</td>
+        <td class="col-sentence">باصفا و همکاران (1395) با مطالعه شمایل‌شناسی نقش مار در حوزه‌های فرهنگی ایران و آسیای میانه در عصر مفرغ، نشان داده‌اند که این نماد در بسیاری از مراکز تمدنی ایران، به ویژه در جنوب شرق و شمال شرق فلات ایران، حضوری گسترده داشته و با مفاهیمی چون برکت، حفاظت و باروری در ارتباط بوده است.</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="5" data-found="true">
+        <td class="col-idx">13</td>
+        <td class="col-page">5</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(مرادی، 1394)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">منشأ نقش مار در مواد فرهنگی هزاره سوم پیش از میلاد جنوب شرق ایران</td>
+        <td class="col-sentence">مرادی (1394) در پژوهشی پیرامون منشأ نقش مار در مواد فرهنگی هزاره سوم پیش از میلاد جنوب شرق ایران، به بررسی گسترش این نماد در حوزه فرهنگی جیرفت پرداخته و آن را یکی از مهم‌ترین عناصر نمادین تمدن‌های عصر مفرغ دانسته است.</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="5" data-found="true">
+        <td class="col-idx">14</td>
+        <td class="col-page">5</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(پلاسعیدی، 1396)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">نقش مار در فرهنگ و تمدن ایلامی</td>
+        <td class="col-sentence">پلاسعیدی (1396) نیز در مطالعه‌ای درباره نقش مار در فرهنگ و تمدن ایلامی، جایگاه این نماد را در باورهای مذهبی ایلامیان بررسی کرده و ارتباط آن را با آب، باروری و ایزدبانوان باستانی مورد تأکید قرار داده است.</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="5" data-found="true">
+        <td class="col-idx">15</td>
+        <td class="col-page">5</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(طاهری و طاووسی، 1386)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">خدای‌بانوان باروری در جهان باستان</td>
+        <td class="col-sentence">در حوزه مطالعات مرتبط با نمادهای زن و باروری، طاهری و طاووسی (1386) به بررسی خدای‌بانوان باروری در جهان باستان پرداخته و نشان داده‌اند که در بسیاری از فرهنگ‌های خاور نزدیک، ایزدبانوان باروری در همراهی با نمادهایی چون مار، آب و ماه تصویر شده‌اند.</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="5" data-found="true">
+        <td class="col-idx">16</td>
+        <td class="col-page">5</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(خانی، 1390)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">جایگاه نیروی مؤنث در اساطیر</td>
+        <td class="col-sentence">همچنین خانی (1390) در پژوهش خود درباره جایگاه نیروی مؤنث در اساطیر، به نقش زنان و الهه‌بانوان در نظام‌های اساطیری باستان پرداخته است.</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="5" data-found="true">
+        <td class="col-idx">17</td>
+        <td class="col-page">5</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(آثار صمدی، 1367)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">ماه در ایران</td>
+        <td class="col-sentence">در زمینه نماد ماه نیز پژوهش‌هایی چون آثار صمدی (1367)، رضی (1379)، آورزمانی (1390)، وزیریان (1392) و شجاعی (1395) به بررسی جایگاه ماه در فرهنگ و اساطیر ایران باستان پرداخته‌اند.</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="5" data-found="true">
+        <td class="col-idx">18</td>
+        <td class="col-page">5</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(رضی، 1379)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">جشن‌های آب</td>
+        <td class="col-sentence">در زمینه نماد ماه نیز پژوهش‌هایی چون آثار صمدی (1367)، رضی (1379)، آورزمانی (1390)، وزیریان (1392) و شجاعی (1395) به بررسی جایگاه ماه در فرهنگ و اساطیر ایران باستان پرداخته‌اند.</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="5" data-found="true">
+        <td class="col-idx">19</td>
+        <td class="col-page">5</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(آورزمانی، 1390)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">نگاهی به رازهای ماه در ایران باستان</td>
+        <td class="col-sentence">در زمینه نماد ماه نیز پژوهش‌هایی چون آثار صمدی (1367)، رضی (1379)، آورزمانی (1390)، وزیریان (1392) و شجاعی (1395) به بررسی جایگاه ماه در فرهنگ و اساطیر ایران باستان پرداخته‌اند.</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="5" data-found="true">
+        <td class="col-idx">20</td>
+        <td class="col-page">5</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(وزیریان، 1392)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">بررسی نماد خورشید و ماه در سفالینه‌های ایلام باستان</td>
+        <td class="col-sentence">در زمینه نماد ماه نیز پژوهش‌هایی چون آثار صمدی (1367)، رضی (1379)، آورزمانی (1390)، وزیریان (1392) و شجاعی (1395) به بررسی جایگاه ماه در فرهنگ و اساطیر ایران باستان پرداخته‌اند.</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="5" data-found="true">
+        <td class="col-idx">21</td>
+        <td class="col-page">5</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(Kohl, 1979)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">The “World-Economy” of Western Asia in the Third Millennium B</td>
+        <td class="col-sentence">در سطح بین‌المللی نیز پژوهشگرانی چون Kohl (1979)، Casanova (2000) و Winkelman (2013, 2014) با بررسی شبکه‌های ارتباطی عصر مفرغ در ایران، میان‌رودان و آسیای میانه، نشان داده‌اند که انتقال نمادها، باورهای مذهبی و الگوهای شمایل‌نگارانه بخش مهمی از تعاملات فرهنگی این دوره را تشکیل می‌داده است.</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="5" data-found="true">
+        <td class="col-idx">22</td>
+        <td class="col-page">5</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(Casanova, 2000)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">Le lapis-lazuli de l’Asie centrale à la Syrie au Chalcolithique et à l’Âge du Bronze: traits communs et particularités régionales</td>
+        <td class="col-sentence">در سطح بین‌المللی نیز پژوهشگرانی چون Kohl (1979)، Casanova (2000) و Winkelman (2013, 2014) با بررسی شبکه‌های ارتباطی عصر مفرغ در ایران، میان‌رودان و آسیای میانه، نشان داده‌اند که انتقال نمادها، باورهای مذهبی و الگوهای شمایل‌نگارانه بخش مهمی از تعاملات فرهنگی این دوره را تشکیل می‌داده است.</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="5" data-found="true">
+        <td class="col-idx">23</td>
+        <td class="col-page">5</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(Winkelman, 2013)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">Transformation of Near Eastern Animal Motifs in Murghabo-Bactrian Bronze Age Art</td>
+        <td class="col-sentence">در سطح بین‌المللی نیز پژوهشگرانی چون Kohl (1979)، Casanova (2000) و Winkelman (2013, 2014) با بررسی شبکه‌های ارتباطی عصر مفرغ در ایران، میان‌رودان و آسیای میانه، نشان داده‌اند که انتقال نمادها، باورهای مذهبی و الگوهای شمایل‌نگارانه بخش مهمی از تعاملات فرهنگی این دوره را تشکیل می‌داده است.</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="5" data-found="true">
+        <td class="col-idx">24</td>
+        <td class="col-page">5</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(Winkelman, 2014)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">Trading Religions from Bronze Age Iran to Bactria</td>
+        <td class="col-sentence">در سطح بین‌المللی نیز پژوهشگرانی چون Kohl (1979)، Casanova (2000) و Winkelman (2013, 2014) با بررسی شبکه‌های ارتباطی عصر مفرغ در ایران، میان‌رودان و آسیای میانه، نشان داده‌اند که انتقال نمادها، باورهای مذهبی و الگوهای شمایل‌نگارانه بخش مهمی از تعاملات فرهنگی این دوره را تشکیل می‌داده است.</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="7" data-found="true">
+        <td class="col-idx">25</td>
+        <td class="col-page">7</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(الیاده، 1372)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">رساله در تاریخ ادیان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">بسیاری از پژوهشگران حوزه اسطوره‌شناسی و نمادشناسی معتقدند که تصاویر و نقش‌مایه‌های تکرارشونده در جوامع باستانی بازتابی از نظام‌های فکری، باورهای دینی و ساختارهای نمادین آن جوامع هستند (الیاده، 1372؛ بهار، 1376؛ شوالیه و گربران، 1385).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="7" data-found="true">
+        <td class="col-idx">26</td>
+        <td class="col-page">7</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(بهار، 1376)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">از اسطوره تا تاریخ</td>
+        <td class="col-sentence">بسیاری از پژوهشگران حوزه اسطوره‌شناسی و نمادشناسی معتقدند که تصاویر و نقش‌مایه‌های تکرارشونده در جوامع باستانی بازتابی از نظام‌های فکری، باورهای دینی و ساختارهای نمادین آن جوامع هستند (الیاده، 1372؛ بهار، 1376؛ شوالیه و گربران، 1385).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="flag-row" data-page="7" data-found="false">
+        <td class="col-idx">27</td>
+        <td class="col-page">7</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(شوالیه و گربران، 1385)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title missing">⚠️ در فهرست منابع یافت نشد</td>
+        <td class="col-sentence">بسیاری از پژوهشگران حوزه اسطوره‌شناسی و نمادشناسی معتقدند که تصاویر و نقش‌مایه‌های تکرارشونده در جوامع باستانی بازتابی از نظام‌های فکری، باورهای دینی و ساختارهای نمادین آن جوامع هستند (الیاده، 1372؛ بهار، 1376؛ شوالیه و گربران، 1385).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="7" data-found="true">
+        <td class="col-idx">28</td>
+        <td class="col-page">7</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(کوپر، 1379)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">فرهنگ مصور نمادهای سنتی (ترجمه ملیحه کرباسیان)</td>
+        <td class="col-sentence">از این منظر، مار در فرهنگ‌های باستانی صرفاً یک جانور طبیعی محسوب نمی‌شود، بلکه نمادی چندلایه است که می‌تواند معانی متفاوتی چون باروری، تجدید حیات، حفاظت، قدرت‌های زیرزمینی و نیروهای زاینده طبیعت را نمایندگی کند (کوپر، 1379؛ دوبوکور، 1373).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="7" data-found="true">
+        <td class="col-idx">29</td>
+        <td class="col-page">7</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(دوبوکور، 1373)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">رمزهای زنده جهان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">از این منظر، مار در فرهنگ‌های باستانی صرفاً یک جانور طبیعی محسوب نمی‌شود، بلکه نمادی چندلایه است که می‌تواند معانی متفاوتی چون باروری، تجدید حیات، حفاظت، قدرت‌های زیرزمینی و نیروهای زاینده طبیعت را نمایندگی کند (کوپر، 1379؛ دوبوکور، 1373).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="7" data-found="true">
+        <td class="col-idx">30</td>
+        <td class="col-page">7</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(الیاده، 1372)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">رساله در تاریخ ادیان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">در بسیاری از نظام‌های اساطیری، عناصر طبیعی، انسانی و کیهانی در قالب شبکه‌ای از روابط نمادین با یکدیگر پیوند می‌یابند و از خلال این روابط، ساختار جهان معنا می‌شود (الیاده، 1372؛ آموزگار، 1374).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="flag-row" data-page="7" data-found="false">
+        <td class="col-idx">31</td>
+        <td class="col-page">7</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(آموزگار، 1374)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title missing">⚠️ در فهرست منابع یافت نشد</td>
+        <td class="col-sentence">در بسیاری از نظام‌های اساطیری، عناصر طبیعی، انسانی و کیهانی در قالب شبکه‌ای از روابط نمادین با یکدیگر پیوند می‌یابند و از خلال این روابط، ساختار جهان معنا می‌شود (الیاده، 1372؛ آموزگار، 1374).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="10" data-found="true">
+        <td class="col-idx">32</td>
+        <td class="col-page">10</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(Kohl, 1979: 37)</td>
+        <td class="col-srcpage">37</td>
+        <td class="col-title ">The “World-Economy” of Western Asia in the Third Millennium B</td>
+        <td class="col-sentence">(Kohl, 1979: 37)</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="11" data-found="true">
+        <td class="col-idx">33</td>
+        <td class="col-page">11</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(Winkelman, 2013: 46)</td>
+        <td class="col-srcpage">46</td>
+        <td class="col-title ">Transformation of Near Eastern Animal Motifs in Murghabo-Bactrian Bronze Age Art</td>
+        <td class="col-sentence">(Winkelman, 2013: 46) این اشتراکات فرهنگی را می‌توان در نقوش سفالی، آثار فلزی، پیکره‌های آیینی و دیگر جلوه‌های هنر عصر مفرغ مشاهده کرد.</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="11" data-found="true">
+        <td class="col-idx">34</td>
+        <td class="col-page">11</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(باصفا و همکاران، 1395: 18)</td>
+        <td class="col-srcpage">18</td>
+        <td class="col-title ">بررسی شمایل‌شناسی نقش مار در حوزه‌های فرهنگی ایران و آسیای میانه در عصر مفرغ</td>
+        <td class="col-sentence">تصویر1: پراکنش محوطه‌های دوره برنز در جنوب غربی آسیا (باصفا و همکاران، 1395، 18)</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="11" data-found="true">
+        <td class="col-idx">35</td>
+        <td class="col-page">11</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(Winkelman, 2013: 47)</td>
+        <td class="col-srcpage">47</td>
+        <td class="col-title ">Transformation of Near Eastern Animal Motifs in Murghabo-Bactrian Bronze Age Art</td>
+        <td class="col-sentence">(Winkelman, 2013: 47)</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="12" data-found="true">
+        <td class="col-idx">36</td>
+        <td class="col-page">12</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(بهار، 1376: 95-85)</td>
+        <td class="col-srcpage">95-85</td>
+        <td class="col-title ">از اسطوره تا تاریخ</td>
+        <td class="col-sentence">در فرهنگ ایران باستان نیز مار همواره جایگاهی ممتاز داشته و در بسیاری از روایت‌ها و باورهای مردمی به عنوان نگهبان آب‌ها، چشمه‌ها و سرچشمه‌های حیات شناخته شده است (بهار، 1376: 95-85) .</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="12" data-found="true">
+        <td class="col-idx">37</td>
+        <td class="col-page">12</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(الیاده، ۱۳۷۲: حدود ۱۶۵–۱۷۰)</td>
+        <td class="col-srcpage">حدود ۱۶۵–۱۷۰</td>
+        <td class="col-title ">رساله در تاریخ ادیان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">اگرچه این پیوند در فرهنگ‌های مختلف به شیوه‌های گوناگون بازنمایی شده است، اما اشتراک آنها در قلمرو حیات و زایش سبب شده است که در بسیاری از روایت‌های اساطیری و آثار هنری، در کنار یکدیگر ظاهر شوند (الیاده، ۱۳۷۲: حدود ۱۶۵–۱۷۰؛ بهار، ۱۳۷۶: ۲۶۰–۲۶۷؛ شوالیه و گربران، ۱۳۸۵: ۸۱۰–۸۱۴).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="12" data-found="true">
+        <td class="col-idx">38</td>
+        <td class="col-page">12</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(بهار، ۱۳۷۶: ۲۶۰–۲۶۷)</td>
+        <td class="col-srcpage">۲۶۰–۲۶۷</td>
+        <td class="col-title ">از اسطوره تا تاریخ</td>
+        <td class="col-sentence">اگرچه این پیوند در فرهنگ‌های مختلف به شیوه‌های گوناگون بازنمایی شده است، اما اشتراک آنها در قلمرو حیات و زایش سبب شده است که در بسیاری از روایت‌های اساطیری و آثار هنری، در کنار یکدیگر ظاهر شوند (الیاده، ۱۳۷۲: حدود ۱۶۵–۱۷۰؛ بهار، ۱۳۷۶: ۲۶۰–۲۶۷؛ شوالیه و گربران، ۱۳۸۵: ۸۱۰–۸۱۴).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="flag-row" data-page="12" data-found="false">
+        <td class="col-idx">39</td>
+        <td class="col-page">12</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(شوالیه و گربران، ۱۳۸۵: ۸۱۰–۸۱۴)</td>
+        <td class="col-srcpage">۸۱۰–۸۱۴</td>
+        <td class="col-title missing">⚠️ در فهرست منابع یافت نشد</td>
+        <td class="col-sentence">اگرچه این پیوند در فرهنگ‌های مختلف به شیوه‌های گوناگون بازنمایی شده است، اما اشتراک آنها در قلمرو حیات و زایش سبب شده است که در بسیاری از روایت‌های اساطیری و آثار هنری، در کنار یکدیگر ظاهر شوند (الیاده، ۱۳۷۲: حدود ۱۶۵–۱۷۰؛ بهار، ۱۳۷۶: ۲۶۰–۲۶۷؛ شوالیه و گربران، ۱۳۸۵: ۸۱۰–۸۱۴).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="12" data-found="true">
+        <td class="col-idx">40</td>
+        <td class="col-page">12</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(الیاده، ۱۳۷۲: ۲۱۵)</td>
+        <td class="col-srcpage">۲۱۵</td>
+        <td class="col-title ">رساله در تاریخ ادیان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">ویژگی‌هایی چون پوست‌اندازی، زیست در شکاف‌های زمین و توانایی ظهور و ناپدید شدن از دید انسان، سبب شده است که این جانور در ذهن جوامع باستانی به نمادی از مرگ، تولد دوباره، باززایی و استمرار زندگی تبدیل شود (الیاده، ۱۳۷۲: ۲۱۵؛ کوپر، ۱۳۷۹: ۲۱۴).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="12" data-found="true">
+        <td class="col-idx">41</td>
+        <td class="col-page">12</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(کوپر، ۱۳۷۹: ۲۱۴)</td>
+        <td class="col-srcpage">۲۱۴</td>
+        <td class="col-title ">فرهنگ مصور نمادهای سنتی (ترجمه ملیحه کرباسیان)</td>
+        <td class="col-sentence">ویژگی‌هایی چون پوست‌اندازی، زیست در شکاف‌های زمین و توانایی ظهور و ناپدید شدن از دید انسان، سبب شده است که این جانور در ذهن جوامع باستانی به نمادی از مرگ، تولد دوباره، باززایی و استمرار زندگی تبدیل شود (الیاده، ۱۳۷۲: ۲۱۵؛ کوپر، ۱۳۷۹: ۲۱۴).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="12" data-found="true">
+        <td class="col-idx">42</td>
+        <td class="col-page">12</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(دادور، ۱۳۸۲)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">نین‌هورساک؛ الهه مادر و بانوی کوهستان</td>
+        <td class="col-sentence">این هم‌پوشانی را می‌توان در روایت‌های اساطیری، آیین‌های باروری و نیز در برخی آثار هنری مشاهده کرد؛ آثاری که در آنها حضور هم‌زمان زن و مار، بیش از آنکه بازتاب یک روایت مشخص باشد، بیانگر اشتراک این دو در نظام نمادین مرتبط با زایش و استمرار حیات است (دادور، ۱۳۸۲؛ دادور و منصوری، ۱۳۹۱).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="12" data-found="true">
+        <td class="col-idx">43</td>
+        <td class="col-page">12</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(دادور و منصوری، ۱۳۹۱)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">درآمدی بر اسطوره‌ها و نمادهای ایران و هند در عهد باستان</td>
+        <td class="col-sentence">این هم‌پوشانی را می‌توان در روایت‌های اساطیری، آیین‌های باروری و نیز در برخی آثار هنری مشاهده کرد؛ آثاری که در آنها حضور هم‌زمان زن و مار، بیش از آنکه بازتاب یک روایت مشخص باشد، بیانگر اشتراک این دو در نظام نمادین مرتبط با زایش و استمرار حیات است (دادور، ۱۳۸۲؛ دادور و منصوری، ۱۳۹۱).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="12" data-found="true">
+        <td class="col-idx">44</td>
+        <td class="col-page">12</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(بهار، ۱۳۷۶: ۲۶۷)</td>
+        <td class="col-srcpage">۲۶۷</td>
+        <td class="col-title ">از اسطوره تا تاریخ</td>
+        <td class="col-sentence">از این منظر، ارتباط میان زن و مار نه لزوماً رابطه‌ای مستقیم، بلکه حاصل اشتراک هر دو در حوزه‌ای معنایی است که بر مفاهیم زایش، باروری و تداوم حیات استوار است (بهار، ۱۳۷۶: ۲۶۷؛ شوالیه و گربران، ۱۳۸۵: ۸۱۲).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="flag-row" data-page="12" data-found="false">
+        <td class="col-idx">45</td>
+        <td class="col-page">12</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(شوالیه و گربران، ۱۳۸۵: ۸۱۲)</td>
+        <td class="col-srcpage">۸۱۲</td>
+        <td class="col-title missing">⚠️ در فهرست منابع یافت نشد</td>
+        <td class="col-sentence">از این منظر، ارتباط میان زن و مار نه لزوماً رابطه‌ای مستقیم، بلکه حاصل اشتراک هر دو در حوزه‌ای معنایی است که بر مفاهیم زایش، باروری و تداوم حیات استوار است (بهار، ۱۳۷۶: ۲۶۷؛ شوالیه و گربران، ۱۳۸۵: ۸۱۲).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="13" data-found="true">
+        <td class="col-idx">46</td>
+        <td class="col-page">13</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(طاهری، 1394: 31)</td>
+        <td class="col-srcpage">31</td>
+        <td class="col-title ">باژگونی مفهوم یک نماد</td>
+        <td class="col-sentence">(طاهری، 1394: 31)</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="13" data-found="true">
+        <td class="col-idx">47</td>
+        <td class="col-page">13</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(طاهری، 1394: 31)</td>
+        <td class="col-srcpage">31</td>
+        <td class="col-title ">باژگونی مفهوم یک نماد</td>
+        <td class="col-sentence">(طاهری، 1394: 31)</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="13" data-found="true">
+        <td class="col-idx">48</td>
+        <td class="col-page">13</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(بهار، ۱۳۷۶)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">از اسطوره تا تاریخ</td>
+        <td class="col-sentence">برخی پژوهشگران، پیکره‌های زنانه پیشاتاریخی را با مفاهیمی چون باروری، زایش و تداوم حیات مرتبط دانسته‌اند (بهار، ۱۳۷۶؛ دادور و منصوری، ۱۳۹۱).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="13" data-found="true">
+        <td class="col-idx">49</td>
+        <td class="col-page">13</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(دادور و منصوری، ۱۳۹۱)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">درآمدی بر اسطوره‌ها و نمادهای ایران و هند در عهد باستان</td>
+        <td class="col-sentence">برخی پژوهشگران، پیکره‌های زنانه پیشاتاریخی را با مفاهیمی چون باروری، زایش و تداوم حیات مرتبط دانسته‌اند (بهار، ۱۳۷۶؛ دادور و منصوری، ۱۳۹۱).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="13" data-found="true">
+        <td class="col-idx">50</td>
+        <td class="col-page">13</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(الیاده، ۱۳۷۲)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">رساله در تاریخ ادیان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">از این رو، هم‌نشینی این دو نماد را می‌توان بازتاب نظامی نمادین دانست که بر مفاهیم زایش، رویش، باروری و جاودانگی استوار است (الیاده، ۱۳۷۲؛ شوالیه و گربران، ۱۳۸۵؛ کوپر، ۱۳۷۹).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="flag-row" data-page="13" data-found="false">
+        <td class="col-idx">51</td>
+        <td class="col-page">13</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(شوالیه و گربران، ۱۳۸۵)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title missing">⚠️ در فهرست منابع یافت نشد</td>
+        <td class="col-sentence">از این رو، هم‌نشینی این دو نماد را می‌توان بازتاب نظامی نمادین دانست که بر مفاهیم زایش، رویش، باروری و جاودانگی استوار است (الیاده، ۱۳۷۲؛ شوالیه و گربران، ۱۳۸۵؛ کوپر، ۱۳۷۹).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="13" data-found="true">
+        <td class="col-idx">52</td>
+        <td class="col-page">13</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(کوپر، ۱۳۷۹)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">فرهنگ مصور نمادهای سنتی (ترجمه ملیحه کرباسیان)</td>
+        <td class="col-sentence">از این رو، هم‌نشینی این دو نماد را می‌توان بازتاب نظامی نمادین دانست که بر مفاهیم زایش، رویش، باروری و جاودانگی استوار است (الیاده، ۱۳۷۲؛ شوالیه و گربران، ۱۳۸۵؛ کوپر، ۱۳۷۹).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="14" data-found="true">
+        <td class="col-idx">53</td>
+        <td class="col-page">14</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(Toscanne, 1911: 27)</td>
+        <td class="col-srcpage">27</td>
+        <td class="col-title ">Études sur le serpent: Figure et symbole dans l&#x27;antiquité Élamite</td>
+        <td class="col-sentence">(Toscanne, 1911: 27)</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="14" data-found="true">
+        <td class="col-idx">54</td>
+        <td class="col-page">14</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(Toscanne, 1911: 27)</td>
+        <td class="col-srcpage">27</td>
+        <td class="col-title ">Études sur le serpent: Figure et symbole dans l&#x27;antiquité Élamite</td>
+        <td class="col-sentence">(Toscanne, 1911: 27)</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="14" data-found="true">
+        <td class="col-idx">55</td>
+        <td class="col-page">14</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(الیاده، ۱۳۷۲)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">رساله در تاریخ ادیان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">هرچند تعیین معنای دقیق این ترکیب بدون شواهد متنی هم‌زمان ممکن نیست، اما تداوم حضور آن در فرهنگ‌های مختلف خاور نزدیک، از جایگاه ویژه این دو نماد در نظام‌های اعتقادی حکایت دارد (الیاده، ۱۳۷۲؛ شوالیه و گربران، ۱۳۸۵).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="flag-row" data-page="14" data-found="false">
+        <td class="col-idx">56</td>
+        <td class="col-page">14</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(شوالیه و گربران، ۱۳۸۵)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title missing">⚠️ در فهرست منابع یافت نشد</td>
+        <td class="col-sentence">هرچند تعیین معنای دقیق این ترکیب بدون شواهد متنی هم‌زمان ممکن نیست، اما تداوم حضور آن در فرهنگ‌های مختلف خاور نزدیک، از جایگاه ویژه این دو نماد در نظام‌های اعتقادی حکایت دارد (الیاده، ۱۳۷۲؛ شوالیه و گربران، ۱۳۸۵).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="14" data-found="true">
+        <td class="col-idx">57</td>
+        <td class="col-page">14</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(مک‌کال، ۱۳۷۵)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">اسطوره‌های بین‌النهرین (ترجمه عباس مخبر)</td>
+        <td class="col-sentence">در اساطیر بین‌النهرین نیز پیوند مار با گیاه یا درخت زندگی در روایت گیلگمش بازتاب یافته است؛ جایی که مار با ربودن گیاه جاودانگی، به نمادی از چرخه مرگ، باززایی و استمرار زندگی تبدیل می‌شود (مک‌کال، ۱۳۷۵؛ دلاپورت، ۱۳۷۵؛ کوپر، ۱۳۷۹؛ الیاده، ۱۳۷۲).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="14" data-found="true">
+        <td class="col-idx">58</td>
+        <td class="col-page">14</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(دلاپورت، ۱۳۷۵)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">اساطیر آشور و بابل</td>
+        <td class="col-sentence">در اساطیر بین‌النهرین نیز پیوند مار با گیاه یا درخت زندگی در روایت گیلگمش بازتاب یافته است؛ جایی که مار با ربودن گیاه جاودانگی، به نمادی از چرخه مرگ، باززایی و استمرار زندگی تبدیل می‌شود (مک‌کال، ۱۳۷۵؛ دلاپورت، ۱۳۷۵؛ کوپر، ۱۳۷۹؛ الیاده، ۱۳۷۲).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="14" data-found="true">
+        <td class="col-idx">59</td>
+        <td class="col-page">14</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(کوپر، ۱۳۷۹)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">فرهنگ مصور نمادهای سنتی (ترجمه ملیحه کرباسیان)</td>
+        <td class="col-sentence">در اساطیر بین‌النهرین نیز پیوند مار با گیاه یا درخت زندگی در روایت گیلگمش بازتاب یافته است؛ جایی که مار با ربودن گیاه جاودانگی، به نمادی از چرخه مرگ، باززایی و استمرار زندگی تبدیل می‌شود (مک‌کال، ۱۳۷۵؛ دلاپورت، ۱۳۷۵؛ کوپر، ۱۳۷۹؛ الیاده، ۱۳۷۲).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="14" data-found="true">
+        <td class="col-idx">60</td>
+        <td class="col-page">14</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(الیاده، ۱۳۷۲)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">رساله در تاریخ ادیان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">در اساطیر بین‌النهرین نیز پیوند مار با گیاه یا درخت زندگی در روایت گیلگمش بازتاب یافته است؛ جایی که مار با ربودن گیاه جاودانگی، به نمادی از چرخه مرگ، باززایی و استمرار زندگی تبدیل می‌شود (مک‌کال، ۱۳۷۵؛ دلاپورت، ۱۳۷۵؛ کوپر، ۱۳۷۹؛ الیاده، ۱۳۷۲).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="14" data-found="true">
+        <td class="col-idx">61</td>
+        <td class="col-page">14</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(Toscanne, 1911: 27)</td>
+        <td class="col-srcpage">27</td>
+        <td class="col-title ">Études sur le serpent: Figure et symbole dans l&#x27;antiquité Élamite</td>
+        <td class="col-sentence">(Toscanne, 1911: 27)</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="14" data-found="true">
+        <td class="col-idx">62</td>
+        <td class="col-page">14</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(همان: ۲۷)</td>
+        <td class="col-srcpage">۲۷</td>
+        <td class="col-title ">(همان — ارجاع به منبع بند/جمله قبلی)</td>
+        <td class="col-sentence">وی نقش مار را در این ترکیب، وسوسه‌گر و درخت را نمادی مرتبط با آب حیات و تداوم زندگی تفسیر می‌کند و این مجموعه را بازتاب نظامی نمادین می‌داند که در آن مفاهیم حیات، باروری و جاودانگی به یکدیگر پیوند خورده‌اند (همان: ۲۷).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="15" data-found="true">
+        <td class="col-idx">63</td>
+        <td class="col-page">15</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(Amiet, 1966)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">Elam</td>
+        <td class="col-sentence">به اعتقاد وی، حضور مکرر این نقش‌مایه‌ها در مهرها و اشیای آیینی نشان می‌دهد که این عناصر فراتر از نقش‌های تزئینی، در بیان مفاهیم دینی و کیهانی جوامع ایلامی نقش داشته‌اند (Amiet, 1966؛ Amiet, 1986).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="15" data-found="true">
+        <td class="col-idx">64</td>
+        <td class="col-page">15</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(Amiet, 1986)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">L&#x27;âge des échanges inter-iraniens، 3500–1700 av. J.-C.</td>
+        <td class="col-sentence">به اعتقاد وی، حضور مکرر این نقش‌مایه‌ها در مهرها و اشیای آیینی نشان می‌دهد که این عناصر فراتر از نقش‌های تزئینی، در بیان مفاهیم دینی و کیهانی جوامع ایلامی نقش داشته‌اند (Amiet, 1966؛ Amiet, 1986).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="15" data-found="true">
+        <td class="col-idx">65</td>
+        <td class="col-page">15</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(Williams-Forte, 1976: 42)</td>
+        <td class="col-srcpage">42</td>
+        <td class="col-title ">The Role of the Tree on the Seal and the Effect of the Elamite Seals (3000–539 BC)</td>
+        <td class="col-sentence">وی با بررسی مهرهای ایلامی نشان می‌دهد که ترکیب درخت و مار از نقش‌مایه‌های تکرارشونده هنر ایلام است و این هم‌نشینی را باید در چارچوب نظام نمادین مرتبط با باروری و استمرار حیات تفسیر کرد (Williams-Forte, 1976: 42) .</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="15" data-found="true">
+        <td class="col-idx">66</td>
+        <td class="col-page">15</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(الیاده، ۱۳۷۲)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">رساله در تاریخ ادیان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">همچنین، در مطالعات نمادشناسی تطبیقی، درخت زندگی و مار هر دو با چرخه‌های حیات، باززایی و جاودانگی مرتبط دانسته شده‌اند و هم‌نشینی آنها در آثار هنری، بازتابی از همین ساختار نمادین مشترک تلقی می‌شود (الیاده، ۱۳۷۲؛ شوالیه و گربران، ۱۳۸۵).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="flag-row" data-page="15" data-found="false">
+        <td class="col-idx">67</td>
+        <td class="col-page">15</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(شوالیه و گربران، ۱۳۸۵)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title missing">⚠️ در فهرست منابع یافت نشد</td>
+        <td class="col-sentence">همچنین، در مطالعات نمادشناسی تطبیقی، درخت زندگی و مار هر دو با چرخه‌های حیات، باززایی و جاودانگی مرتبط دانسته شده‌اند و هم‌نشینی آنها در آثار هنری، بازتابی از همین ساختار نمادین مشترک تلقی می‌شود (الیاده، ۱۳۷۲؛ شوالیه و گربران، ۱۳۸۵).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="15" data-found="true">
+        <td class="col-idx">68</td>
+        <td class="col-page">15</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(الیاده، ۱۳۷۲: ۱۷۵)</td>
+        <td class="col-srcpage">۱۷۵</td>
+        <td class="col-title ">رساله در تاریخ ادیان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">از همین رو، بسیاری از نیروهای طبیعی مرتبط با آب در قالب ایزدان، موجودات مقدس یا نمادهای جانوری بازنمایی شده‌اند و آب در بسیاری از سنت‌های اساطیری، سرچشمه زندگی، باروری و تجدید حیات تلقی شده است (الیاده، ۱۳۷۲: ۱۷۵؛ بهار، ۱۳۷۶: ۲۴۱).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="15" data-found="true">
+        <td class="col-idx">69</td>
+        <td class="col-page">15</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(بهار، ۱۳۷۶: ۲۴۱)</td>
+        <td class="col-srcpage">۲۴۱</td>
+        <td class="col-title ">از اسطوره تا تاریخ</td>
+        <td class="col-sentence">از همین رو، بسیاری از نیروهای طبیعی مرتبط با آب در قالب ایزدان، موجودات مقدس یا نمادهای جانوری بازنمایی شده‌اند و آب در بسیاری از سنت‌های اساطیری، سرچشمه زندگی، باروری و تجدید حیات تلقی شده است (الیاده، ۱۳۷۲: ۱۷۵؛ بهار، ۱۳۷۶: ۲۴۱).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="flag-row" data-page="15" data-found="false">
+        <td class="col-idx">70</td>
+        <td class="col-page">15</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(شوالیه و گربران، ۱۳۸۵: ۸۱۴)</td>
+        <td class="col-srcpage">۸۱۴</td>
+        <td class="col-title missing">⚠️ در فهرست منابع یافت نشد</td>
+        <td class="col-sentence">افزون بر این، پوست‌اندازی مار نیز آن را به نمادی از تجدید حیات و استمرار زندگی تبدیل کرده است؛ مفاهیمی که در بسیاری از فرهنگ‌های کهن با عنصر آب پیوندی نزدیک دارند (شوالیه و گربران، ۱۳۸۵: ۸۱۴؛ کوپر، ۱۳۷۹: ۲۱۴).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="15" data-found="true">
+        <td class="col-idx">71</td>
+        <td class="col-page">15</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(کوپر، ۱۳۷۹: ۲۱۴)</td>
+        <td class="col-srcpage">۲۱۴</td>
+        <td class="col-title ">فرهنگ مصور نمادهای سنتی (ترجمه ملیحه کرباسیان)</td>
+        <td class="col-sentence">افزون بر این، پوست‌اندازی مار نیز آن را به نمادی از تجدید حیات و استمرار زندگی تبدیل کرده است؛ مفاهیمی که در بسیاری از فرهنگ‌های کهن با عنصر آب پیوندی نزدیک دارند (شوالیه و گربران، ۱۳۸۵: ۸۱۴؛ کوپر، ۱۳۷۹: ۲۱۴).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="16" data-found="true">
+        <td class="col-idx">72</td>
+        <td class="col-page">16</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(بهار، ۱۳۷۶: ۲۴۳)</td>
+        <td class="col-srcpage">۲۴۳</td>
+        <td class="col-title ">از اسطوره تا تاریخ</td>
+        <td class="col-sentence">این برداشت را می‌توان بازتاب اهمیت آب در زندگی جوامع کشاورز دانست؛ جوامعی که استمرار حیات آنان به دسترسی به منابع آبی وابسته بود و از همین رو، نیروهای مرتبط با آب را در قالب نمادهای اسطوره‌ای بازنمایی می‌کردند (بهار، ۱۳۷۶: ۲۴۳؛ آموزگار، ۱۳۷۴: ۱۰۱).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="flag-row" data-page="16" data-found="false">
+        <td class="col-idx">73</td>
+        <td class="col-page">16</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(آموزگار، ۱۳۷۴: ۱۰۱)</td>
+        <td class="col-srcpage">۱۰۱</td>
+        <td class="col-title missing">⚠️ در فهرست منابع یافت نشد</td>
+        <td class="col-sentence">این برداشت را می‌توان بازتاب اهمیت آب در زندگی جوامع کشاورز دانست؛ جوامعی که استمرار حیات آنان به دسترسی به منابع آبی وابسته بود و از همین رو، نیروهای مرتبط با آب را در قالب نمادهای اسطوره‌ای بازنمایی می‌کردند (بهار، ۱۳۷۶: ۲۴۳؛ آموزگار، ۱۳۷۴: ۱۰۱).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="16" data-found="true">
+        <td class="col-idx">74</td>
+        <td class="col-page">16</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(Amiet, 1966)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">Elam</td>
+        <td class="col-sentence">در بسیاری از این آثار، مار در کنار عناصر مرتبط با رویش، باروری و آب ظاهر می‌شود و همین هم‌نشینی، احتمال وجود پیوندی نمادین میان این مفاهیم را تقویت می‌کند (Amiet, 1966؛ Amiet, 1986).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="16" data-found="true">
+        <td class="col-idx">75</td>
+        <td class="col-page">16</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(Amiet, 1986)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">L&#x27;âge des échanges inter-iraniens، 3500–1700 av. J.-C.</td>
+        <td class="col-sentence">در بسیاری از این آثار، مار در کنار عناصر مرتبط با رویش، باروری و آب ظاهر می‌شود و همین هم‌نشینی، احتمال وجود پیوندی نمادین میان این مفاهیم را تقویت می‌کند (Amiet, 1966؛ Amiet, 1986).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="16" data-found="true">
+        <td class="col-idx">76</td>
+        <td class="col-page">16</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(ابراهیمی‌پورفرسنگی و نادعلیان، ۱۳۹۱)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">بازتاب باورهای مرتبط با آب در آثار هنری ایلامیان</td>
+        <td class="col-sentence">هرچند تعیین کارکرد دقیق این ظرف بدون شواهد تکمیلی ممکن نیست، اما تکرار چنین نقش‌مایه‌هایی بر سفالینه‌های شوش، احتمال ارتباط آن را با مفاهیمی چون آب، باروری و تداوم حیات تقویت می‌کند (ابراهیمی‌پورفرسنگی و نادعلیان، ۱۳۹۱؛ Amiet, 1966).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="16" data-found="true">
+        <td class="col-idx">77</td>
+        <td class="col-page">16</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(Amiet, 1966)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">Elam</td>
+        <td class="col-sentence">هرچند تعیین کارکرد دقیق این ظرف بدون شواهد تکمیلی ممکن نیست، اما تکرار چنین نقش‌مایه‌هایی بر سفالینه‌های شوش، احتمال ارتباط آن را با مفاهیمی چون آب، باروری و تداوم حیات تقویت می‌کند (ابراهیمی‌پورفرسنگی و نادعلیان، ۱۳۹۱؛ Amiet, 1966).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="17" data-found="true">
+        <td class="col-idx">78</td>
+        <td class="col-page">17</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(اکبری، 1393: 27)</td>
+        <td class="col-srcpage">27</td>
+        <td class="col-title ">بررسی تطبیقی نقوش نمادین آب در هنر دنیای باستان (ایران، بین‌النهرین و بخش‌هایی از اروپا)</td>
+        <td class="col-sentence">منبع: (اکبری، 1393: 27)</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="17" data-found="true">
+        <td class="col-idx">79</td>
+        <td class="col-page">17</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(اکبری، 1393: 27)</td>
+        <td class="col-srcpage">27</td>
+        <td class="col-title ">بررسی تطبیقی نقوش نمادین آب در هنر دنیای باستان (ایران، بین‌النهرین و بخش‌هایی از اروپا)</td>
+        <td class="col-sentence">منبع: (اکبری، 1393: 27)</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="17" data-found="true">
+        <td class="col-idx">80</td>
+        <td class="col-page">17</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(بهار، ۱۳۷۶: ۴۶)</td>
+        <td class="col-srcpage">۴۶</td>
+        <td class="col-title ">از اسطوره تا تاریخ</td>
+        <td class="col-sentence">برخی پژوهشگران این ترکیب را با مفاهیمی چون باروری، فراوانی، نیروهای زاینده طبیعت و تقدس آب مرتبط دانسته‌اند (بهار، ۱۳۷۶: ۴۶؛ اکرمی، ۱۳۹۳: ۲۷).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="flag-row" data-page="17" data-found="false">
+        <td class="col-idx">81</td>
+        <td class="col-page">17</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(اکرمی، ۱۳۹۳: ۲۷)</td>
+        <td class="col-srcpage">۲۷</td>
+        <td class="col-title missing">⚠️ در فهرست منابع یافت نشد</td>
+        <td class="col-sentence">برخی پژوهشگران این ترکیب را با مفاهیمی چون باروری، فراوانی، نیروهای زاینده طبیعت و تقدس آب مرتبط دانسته‌اند (بهار، ۱۳۷۶: ۴۶؛ اکرمی، ۱۳۹۳: ۲۷).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="17" data-found="true">
+        <td class="col-idx">82</td>
+        <td class="col-page">17</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(الیاده، ۱۳۷۲: ۱۷۹)</td>
+        <td class="col-srcpage">۱۷۹</td>
+        <td class="col-title ">رساله در تاریخ ادیان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">در بسیاری از سنت‌های اساطیری خاور نزدیک، مار نگهبان چشمه‌ها، آب‌های زیرزمینی و سرچشمه‌های حیات به شمار می‌رود و از همین رو، حضور آن در کنار صحنه‌های مرتبط با باروری و زندگی، معنادار به نظر می‌رسد (الیاده، ۱۳۷۲: ۱۷۹؛ بهار، ۱۳۷۶: ۴۶؛ اکرمی، ۱۳۹۳: ۲۷).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="17" data-found="true">
+        <td class="col-idx">83</td>
+        <td class="col-page">17</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(بهار، ۱۳۷۶: ۴۶)</td>
+        <td class="col-srcpage">۴۶</td>
+        <td class="col-title ">از اسطوره تا تاریخ</td>
+        <td class="col-sentence">در بسیاری از سنت‌های اساطیری خاور نزدیک، مار نگهبان چشمه‌ها، آب‌های زیرزمینی و سرچشمه‌های حیات به شمار می‌رود و از همین رو، حضور آن در کنار صحنه‌های مرتبط با باروری و زندگی، معنادار به نظر می‌رسد (الیاده، ۱۳۷۲: ۱۷۹؛ بهار، ۱۳۷۶: ۴۶؛ اکرمی، ۱۳۹۳: ۲۷).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="flag-row" data-page="17" data-found="false">
+        <td class="col-idx">84</td>
+        <td class="col-page">17</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(اکرمی، ۱۳۹۳: ۲۷)</td>
+        <td class="col-srcpage">۲۷</td>
+        <td class="col-title missing">⚠️ در فهرست منابع یافت نشد</td>
+        <td class="col-sentence">در بسیاری از سنت‌های اساطیری خاور نزدیک، مار نگهبان چشمه‌ها، آب‌های زیرزمینی و سرچشمه‌های حیات به شمار می‌رود و از همین رو، حضور آن در کنار صحنه‌های مرتبط با باروری و زندگی، معنادار به نظر می‌رسد (الیاده، ۱۳۷۲: ۱۷۹؛ بهار، ۱۳۷۶: ۴۶؛ اکرمی، ۱۳۹۳: ۲۷).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="17" data-found="true">
+        <td class="col-idx">85</td>
+        <td class="col-page">17</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(مک‌کال، ۱۳۷۵)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">اسطوره‌های بین‌النهرین (ترجمه عباس مخبر)</td>
+        <td class="col-sentence">از این رو، حضور مار در کنار گیاه، درخت یا آب حیات را می‌توان بخشی از نظام نمادینی دانست که مفاهیم زایش، باروری، تداوم زندگی و جاودانگی را به یکدیگر پیوند می‌دهد (مک‌کال، ۱۳۷۵؛ دلاپورت، ۱۳۷۵؛ الیاده، ۱۳۷۲: ۱۷۹).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="17" data-found="true">
+        <td class="col-idx">86</td>
+        <td class="col-page">17</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(دلاپورت، ۱۳۷۵)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">اساطیر آشور و بابل</td>
+        <td class="col-sentence">از این رو، حضور مار در کنار گیاه، درخت یا آب حیات را می‌توان بخشی از نظام نمادینی دانست که مفاهیم زایش، باروری، تداوم زندگی و جاودانگی را به یکدیگر پیوند می‌دهد (مک‌کال، ۱۳۷۵؛ دلاپورت، ۱۳۷۵؛ الیاده، ۱۳۷۲: ۱۷۹).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="17" data-found="true">
+        <td class="col-idx">87</td>
+        <td class="col-page">17</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(الیاده، ۱۳۷۲: ۱۷۹)</td>
+        <td class="col-srcpage">۱۷۹</td>
+        <td class="col-title ">رساله در تاریخ ادیان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">از این رو، حضور مار در کنار گیاه، درخت یا آب حیات را می‌توان بخشی از نظام نمادینی دانست که مفاهیم زایش، باروری، تداوم زندگی و جاودانگی را به یکدیگر پیوند می‌دهد (مک‌کال، ۱۳۷۵؛ دلاپورت، ۱۳۷۵؛ الیاده، ۱۳۷۲: ۱۷۹).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="17" data-found="true">
+        <td class="col-idx">88</td>
+        <td class="col-page">17</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(کوپر، ۱۳۷۹: ۲۱۴)</td>
+        <td class="col-srcpage">۲۱۴</td>
+        <td class="col-title ">فرهنگ مصور نمادهای سنتی (ترجمه ملیحه کرباسیان)</td>
+        <td class="col-sentence">پوست‌اندازی مار در این روایت، استعاره‌ای از تجدید حیات تلقی شده و همین ویژگی، سبب شده است که این جانور در بسیاری از نظام‌های اسطوره‌ای با استمرار زندگی و آب حیات ارتباط یابد (کوپر، ۱۳۷۹: ۲۱۴؛ الیاده، ۱۳۷۲: ۲۱۵؛ مک‌کال، ۱۳۷۵).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="17" data-found="true">
+        <td class="col-idx">89</td>
+        <td class="col-page">17</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(الیاده، ۱۳۷۲: ۲۱۵)</td>
+        <td class="col-srcpage">۲۱۵</td>
+        <td class="col-title ">رساله در تاریخ ادیان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">پوست‌اندازی مار در این روایت، استعاره‌ای از تجدید حیات تلقی شده و همین ویژگی، سبب شده است که این جانور در بسیاری از نظام‌های اسطوره‌ای با استمرار زندگی و آب حیات ارتباط یابد (کوپر، ۱۳۷۹: ۲۱۴؛ الیاده، ۱۳۷۲: ۲۱۵؛ مک‌کال، ۱۳۷۵).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="17" data-found="true">
+        <td class="col-idx">90</td>
+        <td class="col-page">17</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(مک‌کال، ۱۳۷۵)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">اسطوره‌های بین‌النهرین (ترجمه عباس مخبر)</td>
+        <td class="col-sentence">پوست‌اندازی مار در این روایت، استعاره‌ای از تجدید حیات تلقی شده و همین ویژگی، سبب شده است که این جانور در بسیاری از نظام‌های اسطوره‌ای با استمرار زندگی و آب حیات ارتباط یابد (کوپر، ۱۳۷۹: ۲۱۴؛ الیاده، ۱۳۷۲: ۲۱۵؛ مک‌کال، ۱۳۷۵).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="18" data-found="true">
+        <td class="col-idx">91</td>
+        <td class="col-page">18</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(Jordan, 2002)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">Encyclopedia of Gods</td>
+        <td class="col-sentence">از این منظر، هم‌نشینی دو مار در پیرامون محور مرکزی را می‌توان بازتابی از سنتی نمادین دانست که در آن، مفاهیمی چون آب، باروری، تجدید حیات و استمرار زندگی در قالب نشانه‌های مشترک بازنمایی شده‌اند (Jordan, 2002؛ Black &amp; Green؛ دلاپورت، ۱۳۷۵) .</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="flag-row" data-page="18" data-found="false">
+        <td class="col-idx">92</td>
+        <td class="col-page">18</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(Black &amp; Green)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title missing">⚠️ در فهرست منابع یافت نشد</td>
+        <td class="col-sentence">از این منظر، هم‌نشینی دو مار در پیرامون محور مرکزی را می‌توان بازتابی از سنتی نمادین دانست که در آن، مفاهیمی چون آب، باروری، تجدید حیات و استمرار زندگی در قالب نشانه‌های مشترک بازنمایی شده‌اند (Jordan, 2002؛ Black &amp; Green؛ دلاپورت، ۱۳۷۵) .</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="18" data-found="true">
+        <td class="col-idx">93</td>
+        <td class="col-page">18</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(دلاپورت، ۱۳۷۵)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title ">اساطیر آشور و بابل</td>
+        <td class="col-sentence">از این منظر، هم‌نشینی دو مار در پیرامون محور مرکزی را می‌توان بازتابی از سنتی نمادین دانست که در آن، مفاهیمی چون آب، باروری، تجدید حیات و استمرار زندگی در قالب نشانه‌های مشترک بازنمایی شده‌اند (Jordan, 2002؛ Black &amp; Green؛ دلاپورت، ۱۳۷۵) .</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="18" data-found="true">
+        <td class="col-idx">94</td>
+        <td class="col-page">18</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(رضی، ۱۳۷۹: ۴۹۲)</td>
+        <td class="col-srcpage">۴۹۲</td>
+        <td class="col-title ">جشن‌های آب</td>
+        <td class="col-sentence">از همین رو، در بسیاری از فرهنگ‌های کهن، ماه با نیروهای زاینده طبیعت، باروری و استمرار حیات پیوند یافته است (رضی، ۱۳۷۹: ۴۹۲؛ بهمنی، ۱۳۸۹: ۵۶-۵۷؛ الیاده، ۱۳۷۲: ۱۷۵-۱۷۹).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="18" data-found="true">
+        <td class="col-idx">95</td>
+        <td class="col-page">18</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(بهمنی، ۱۳۸۹: ۵۶-۵۷)</td>
+        <td class="col-srcpage">۵۶-۵۷</td>
+        <td class="col-title ">سیر تحول نقش و نماد در هنرهای سنتی ایران</td>
+        <td class="col-sentence">از همین رو، در بسیاری از فرهنگ‌های کهن، ماه با نیروهای زاینده طبیعت، باروری و استمرار حیات پیوند یافته است (رضی، ۱۳۷۹: ۴۹۲؛ بهمنی، ۱۳۸۹: ۵۶-۵۷؛ الیاده، ۱۳۷۲: ۱۷۵-۱۷۹).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="18" data-found="true">
+        <td class="col-idx">96</td>
+        <td class="col-page">18</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(الیاده، ۱۳۷۲: ۱۷۵-۱۷۹)</td>
+        <td class="col-srcpage">۱۷۵-۱۷۹</td>
+        <td class="col-title ">رساله در تاریخ ادیان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">از همین رو، در بسیاری از فرهنگ‌های کهن، ماه با نیروهای زاینده طبیعت، باروری و استمرار حیات پیوند یافته است (رضی، ۱۳۷۹: ۴۹۲؛ بهمنی، ۱۳۸۹: ۵۶-۵۷؛ الیاده، ۱۳۷۲: ۱۷۵-۱۷۹).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="18" data-found="true">
+        <td class="col-idx">97</td>
+        <td class="col-page">18</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(دوبوکور، ۱۳۷۳: ۵۲-۵۳)</td>
+        <td class="col-srcpage">۵۲-۵۳</td>
+        <td class="col-title ">رمزهای زنده جهان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">پوست‌اندازی مار، همانند چرخه دگرگونی ماه، نوعی مرگ نمادین و تولد دوباره را تداعی می‌کند و از همین رو بسیاری از اسطوره‌شناسان، این دو نماد را بازتاب دو جلوه متفاوت از یک مفهوم واحد، یعنی تجدید حیات، دانسته‌اند (دوبوکور، ۱۳۷۳: ۵۲-۵۳؛ کوپر، ۱۳۷۹: ۲۱۳-۲۱۶؛ شوالیه و گربران، ۱۳۸۵: ۸۱۴-۸۱۷).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="18" data-found="true">
+        <td class="col-idx">98</td>
+        <td class="col-page">18</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(کوپر، ۱۳۷۹: ۲۱۳-۲۱۶)</td>
+        <td class="col-srcpage">۲۱۳-۲۱۶</td>
+        <td class="col-title ">فرهنگ مصور نمادهای سنتی (ترجمه ملیحه کرباسیان)</td>
+        <td class="col-sentence">پوست‌اندازی مار، همانند چرخه دگرگونی ماه، نوعی مرگ نمادین و تولد دوباره را تداعی می‌کند و از همین رو بسیاری از اسطوره‌شناسان، این دو نماد را بازتاب دو جلوه متفاوت از یک مفهوم واحد، یعنی تجدید حیات، دانسته‌اند (دوبوکور، ۱۳۷۳: ۵۲-۵۳؛ کوپر، ۱۳۷۹: ۲۱۳-۲۱۶؛ شوالیه و گربران، ۱۳۸۵: ۸۱۴-۸۱۷).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="flag-row" data-page="18" data-found="false">
+        <td class="col-idx">99</td>
+        <td class="col-page">18</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(شوالیه و گربران، ۱۳۸۵: ۸۱۴-۸۱۷)</td>
+        <td class="col-srcpage">۸۱۴-۸۱۷</td>
+        <td class="col-title missing">⚠️ در فهرست منابع یافت نشد</td>
+        <td class="col-sentence">پوست‌اندازی مار، همانند چرخه دگرگونی ماه، نوعی مرگ نمادین و تولد دوباره را تداعی می‌کند و از همین رو بسیاری از اسطوره‌شناسان، این دو نماد را بازتاب دو جلوه متفاوت از یک مفهوم واحد، یعنی تجدید حیات، دانسته‌اند (دوبوکور، ۱۳۷۳: ۵۲-۵۳؛ کوپر، ۱۳۷۹: ۲۱۳-۲۱۶؛ شوالیه و گربران، ۱۳۸۵: ۸۱۴-۸۱۷).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="19" data-found="true">
+        <td class="col-idx">100</td>
+        <td class="col-page">19</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(دادور و منصوری، ۱۳۹۱: ۸۷-۸۹)</td>
+        <td class="col-srcpage">۸۷-۸۹</td>
+        <td class="col-title ">درآمدی بر اسطوره‌ها و نمادهای ایران و هند در عهد باستان</td>
+        <td class="col-sentence">همین هم‌پوشانی معنایی سبب شد که مار و ماه، همراه با زن، در منظومه‌ای مشترک از نمادهای باروری و آفرینش قرار گیرند (دادور و منصوری، ۱۳۹۱: ۸۷-۸۹؛ غیبی و ویسی، ۱۳۹۴: ۱۳۲-۱۳۳).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="19" data-found="true">
+        <td class="col-idx">101</td>
+        <td class="col-page">19</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(غیبی و ویسی، ۱۳۹۴: ۱۳۲-۱۳۳)</td>
+        <td class="col-srcpage">۱۳۲-۱۳۳</td>
+        <td class="col-title ">تجلی سه نمود حیوانی آناهیتا در افسانه‌های عامیانه ایرانی</td>
+        <td class="col-sentence">همین هم‌پوشانی معنایی سبب شد که مار و ماه، همراه با زن، در منظومه‌ای مشترک از نمادهای باروری و آفرینش قرار گیرند (دادور و منصوری، ۱۳۹۱: ۸۷-۸۹؛ غیبی و ویسی، ۱۳۹۴: ۱۳۲-۱۳۳).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="19" data-found="true">
+        <td class="col-idx">102</td>
+        <td class="col-page">19</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(صمدی، ۱۳۶۷: ۱۷۰)</td>
+        <td class="col-srcpage">۱۷۰</td>
+        <td class="col-title ">ماه در ایران</td>
+        <td class="col-sentence">اگرچه تفسیر قطعی این نقش امکان‌پذیر نیست، اما برخی پژوهشگران، مثلث مرکزی را نمادی مرتبط با ماه دانسته‌اند و تقسیمات داخلی آن را بازتابی از مراحل گوناگون چرخه قمری تلقی کرده‌اند (صمدی، ۱۳۶۷: ۱۷۰).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="19" data-found="true">
+        <td class="col-idx">103</td>
+        <td class="col-page">19</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(دادور و منصوری، ۱۳۹۱: ۸۷-۸۹)</td>
+        <td class="col-srcpage">۸۷-۸۹</td>
+        <td class="col-title ">درآمدی بر اسطوره‌ها و نمادهای ایران و هند در عهد باستان</td>
+        <td class="col-sentence">از سوی دیگر، هم‌زمانی نسبی چرخه ماه با چرخه زیستی زنان، سبب شده است که این نقش علاوه بر ماه، با مفاهیم زنانگی، باروری و زایش نیز ارتباط یابد (دادور و منصوری، ۱۳۹۱: ۸۷-۸۹).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="19" data-found="true">
+        <td class="col-idx">104</td>
+        <td class="col-page">19</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(صمدی، ۱۳۶۷: ۱۷۰)</td>
+        <td class="col-srcpage">۱۷۰</td>
+        <td class="col-title ">ماه در ایران</td>
+        <td class="col-sentence">برخی پژوهشگران این نقش‌مایه‌ها را با آغاز بارندگی، باروری، زایش و تجدید طبیعت مرتبط دانسته‌اند (صمدی، ۱۳۶۷: ۱۷۰).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="19" data-found="true">
+        <td class="col-idx">105</td>
+        <td class="col-page">19</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(غیبی و ویسی، ۱۳۹۴: ۱۳۲)</td>
+        <td class="col-srcpage">۱۳۲</td>
+        <td class="col-title ">تجلی سه نمود حیوانی آناهیتا در افسانه‌های عامیانه ایرانی</td>
+        <td class="col-sentence">همین شباهت سبب شده است که این سه نماد در بسیاری از نظام‌های اعتقادی، بازتاب نیروهای زاینده طبیعت و استمرار زندگی تلقی شوند (غیبی و ویسی، ۱۳۹۴: ۱۳۲؛ الیاده، ۱۳۷۲: ۱۷۹-۱۸۰).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="19" data-found="true">
+        <td class="col-idx">106</td>
+        <td class="col-page">19</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(الیاده، ۱۳۷۲: ۱۷۹-۱۸۰)</td>
+        <td class="col-srcpage">۱۷۹-۱۸۰</td>
+        <td class="col-title ">رساله در تاریخ ادیان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">همین شباهت سبب شده است که این سه نماد در بسیاری از نظام‌های اعتقادی، بازتاب نیروهای زاینده طبیعت و استمرار زندگی تلقی شوند (غیبی و ویسی، ۱۳۹۴: ۱۳۲؛ الیاده، ۱۳۷۲: ۱۷۹-۱۸۰).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="21" data-found="true">
+        <td class="col-idx">107</td>
+        <td class="col-page">21</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(دلاپورت، ۱۳۷۵: ۷۳)</td>
+        <td class="col-srcpage">۷۳</td>
+        <td class="col-title ">اساطیر آشور و بابل</td>
+        <td class="col-sentence">این تصویر را نمی‌توان شاهدی مستقیم بر ارتباط نمادین مار و ماه دانست؛ زیرا موجود نقش‌شده، مار معمولی نیست، بلکه اژدهای اساطیری موش‌خوشّو است که در سنت‌های میان‌رودان با نیروهای کیهانی، آب‌های آغازین و نظم جهان ارتباط دارد (دلاپورت، ۱۳۷۵: ۷۳؛ Black &amp; Green, 1992).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="flag-row" data-page="21" data-found="false">
+        <td class="col-idx">108</td>
+        <td class="col-page">21</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(Black &amp; Green, 1992)</td>
+        <td class="col-srcpage"></td>
+        <td class="col-title missing">⚠️ در فهرست منابع یافت نشد</td>
+        <td class="col-sentence">این تصویر را نمی‌توان شاهدی مستقیم بر ارتباط نمادین مار و ماه دانست؛ زیرا موجود نقش‌شده، مار معمولی نیست، بلکه اژدهای اساطیری موش‌خوشّو است که در سنت‌های میان‌رودان با نیروهای کیهانی، آب‌های آغازین و نظم جهان ارتباط دارد (دلاپورت، ۱۳۷۵: ۷۳؛ Black &amp; Green, 1992).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="22" data-found="true">
+        <td class="col-idx">109</td>
+        <td class="col-page">22</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(الیاده، ۱۳۷۲: ۱۷۵–۱۸۰)</td>
+        <td class="col-srcpage">۱۷۵–۱۸۰</td>
+        <td class="col-title ">رساله در تاریخ ادیان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">در این سامانه، مار با سه نماد بنیادین زن، آب و ماه در پیوندی مفهومی قرار می‌گیرد؛ پیوندی که بر پایه مجموعه‌ای از ویژگی‌های مشترک همچون باروری، زایش، تجدید حیات، برکت و استمرار زندگی شکل گرفته است (الیاده، ۱۳۷۲: ۱۷۵–۱۸۰؛ بهار، ۱۳۷۶: ۲۳۸–۲۴۳).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="22" data-found="true">
+        <td class="col-idx">110</td>
+        <td class="col-page">22</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(بهار، ۱۳۷۶: ۲۳۸–۲۴۳)</td>
+        <td class="col-srcpage">۲۳۸–۲۴۳</td>
+        <td class="col-title ">از اسطوره تا تاریخ</td>
+        <td class="col-sentence">در این سامانه، مار با سه نماد بنیادین زن، آب و ماه در پیوندی مفهومی قرار می‌گیرد؛ پیوندی که بر پایه مجموعه‌ای از ویژگی‌های مشترک همچون باروری، زایش، تجدید حیات، برکت و استمرار زندگی شکل گرفته است (الیاده، ۱۳۷۲: ۱۷۵–۱۸۰؛ بهار، ۱۳۷۶: ۲۳۸–۲۴۳).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="flag-row" data-page="22" data-found="false">
+        <td class="col-idx">111</td>
+        <td class="col-page">22</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(شوالیه و گربران، ۱۳۸۵: ۸۱۲–۸۱۶)</td>
+        <td class="col-srcpage">۸۱۲–۸۱۶</td>
+        <td class="col-title missing">⚠️ در فهرست منابع یافت نشد</td>
+        <td class="col-sentence">بنابراین، ارتباط این چهار نماد را باید در قالب یک نظام معنایی مشترک بررسی کرد، نه مجموعه‌ای از پیوندهای مستقل و جداگانه (شوالیه و گربران، ۱۳۸۵: ۸۱۲–۸۱۶؛ کوپر، ۱۳۷۹: ۲۱۳–۲۱۶).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="22" data-found="true">
+        <td class="col-idx">112</td>
+        <td class="col-page">22</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(کوپر، ۱۳۷۹: ۲۱۳–۲۱۶)</td>
+        <td class="col-srcpage">۲۱۳–۲۱۶</td>
+        <td class="col-title ">فرهنگ مصور نمادهای سنتی (ترجمه ملیحه کرباسیان)</td>
+        <td class="col-sentence">بنابراین، ارتباط این چهار نماد را باید در قالب یک نظام معنایی مشترک بررسی کرد، نه مجموعه‌ای از پیوندهای مستقل و جداگانه (شوالیه و گربران، ۱۳۸۵: ۸۱۲–۸۱۶؛ کوپر، ۱۳۷۹: ۲۱۳–۲۱۶).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="22" data-found="true">
+        <td class="col-idx">113</td>
+        <td class="col-page">22</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(بهار، ۱۳۷۶: ۲۶۷)</td>
+        <td class="col-srcpage">۲۶۷</td>
+        <td class="col-title ">از اسطوره تا تاریخ</td>
+        <td class="col-sentence">به همین دلیل، حضور هم‌زمان این دو نماد در پیکرک‌های زنانه، مهرها و دیگر آثار پیشاتاریخی را می‌توان بازتاب یک نظام نمادین مشترک دانست که در آن مفهوم باروری محور اصلی معناست (بهار، ۱۳۷۶: ۲۶۷؛ دادور و منصوری، ۱۳۹۱: ۸۷–۸۹).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="22" data-found="true">
+        <td class="col-idx">114</td>
+        <td class="col-page">22</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(دادور و منصوری، ۱۳۹۱: ۸۷–۸۹)</td>
+        <td class="col-srcpage">۸۷–۸۹</td>
+        <td class="col-title ">درآمدی بر اسطوره‌ها و نمادهای ایران و هند در عهد باستان</td>
+        <td class="col-sentence">به همین دلیل، حضور هم‌زمان این دو نماد در پیکرک‌های زنانه، مهرها و دیگر آثار پیشاتاریخی را می‌توان بازتاب یک نظام نمادین مشترک دانست که در آن مفهوم باروری محور اصلی معناست (بهار، ۱۳۷۶: ۲۶۷؛ دادور و منصوری، ۱۳۹۱: ۸۷–۸۹).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="22" data-found="true">
+        <td class="col-idx">115</td>
+        <td class="col-page">22</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(بهار، ۱۳۷۶: ۲۴۳)</td>
+        <td class="col-srcpage">۲۴۳</td>
+        <td class="col-title ">از اسطوره تا تاریخ</td>
+        <td class="col-sentence">از این منظر، پیوند این دو نماد نه بر پایه شباهت ظاهری، بلکه بر اساس کارکرد مشترک آنها در حفاظت و تداوم زندگی شکل گرفته است (بهار، ۱۳۷۶: ۲۴۳؛ الیاده، ۱۳۷۲: ۱۷۹؛ کوپر، ۱۳۷۹: ۲۱۴).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="22" data-found="true">
+        <td class="col-idx">116</td>
+        <td class="col-page">22</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(الیاده، ۱۳۷۲: ۱۷۹)</td>
+        <td class="col-srcpage">۱۷۹</td>
+        <td class="col-title ">رساله در تاریخ ادیان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">از این منظر، پیوند این دو نماد نه بر پایه شباهت ظاهری، بلکه بر اساس کارکرد مشترک آنها در حفاظت و تداوم زندگی شکل گرفته است (بهار، ۱۳۷۶: ۲۴۳؛ الیاده، ۱۳۷۲: ۱۷۹؛ کوپر، ۱۳۷۹: ۲۱۴).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="22" data-found="true">
+        <td class="col-idx">117</td>
+        <td class="col-page">22</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(کوپر، ۱۳۷۹: ۲۱۴).)</td>
+        <td class="col-srcpage">۲۱۴).</td>
+        <td class="col-title ">فرهنگ مصور نمادهای سنتی (ترجمه ملیحه کرباسیان)</td>
+        <td class="col-sentence">از این منظر، پیوند این دو نماد نه بر پایه شباهت ظاهری، بلکه بر اساس کارکرد مشترک آنها در حفاظت و تداوم زندگی شکل گرفته است (بهار، ۱۳۷۶: ۲۴۳؛ الیاده، ۱۳۷۲: ۱۷۹؛ کوپر، ۱۳۷۹: ۲۱۴).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="22" data-found="true">
+        <td class="col-idx">118</td>
+        <td class="col-page">22</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(دوبوکور، ۱۳۷۳: ۵۲–۵۳)</td>
+        <td class="col-srcpage">۵۲–۵۳</td>
+        <td class="col-title ">رمزهای زنده جهان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">همین شباهت موجب شده است که هر دو نماد در بسیاری از نظام‌های اساطیری با جاودانگی، نوزایی و استمرار زندگی ارتباط یابند (دوبوکور، ۱۳۷۳: ۵۲–۵۳؛ بهمنی، ۱۳۸۹: ۵۶–۵۷؛ الیاده، ۱۳۷۲: ۱۷۵–۱۸۰).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="22" data-found="true">
+        <td class="col-idx">119</td>
+        <td class="col-page">22</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(بهمنی، ۱۳۸۹: ۵۶–۵۷)</td>
+        <td class="col-srcpage">۵۶–۵۷</td>
+        <td class="col-title ">سیر تحول نقش و نماد در هنرهای سنتی ایران</td>
+        <td class="col-sentence">همین شباهت موجب شده است که هر دو نماد در بسیاری از نظام‌های اساطیری با جاودانگی، نوزایی و استمرار زندگی ارتباط یابند (دوبوکور، ۱۳۷۳: ۵۲–۵۳؛ بهمنی، ۱۳۸۹: ۵۶–۵۷؛ الیاده، ۱۳۷۲: ۱۷۵–۱۸۰).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+      <tr class="" data-page="22" data-found="true">
+        <td class="col-idx">120</td>
+        <td class="col-page">22</td>
+        <td class="col-cite" dir="ltr" style="text-align:right">(الیاده، ۱۳۷۲: ۱۷۵–۱۸۰)</td>
+        <td class="col-srcpage">۱۷۵–۱۸۰</td>
+        <td class="col-title ">رساله در تاریخ ادیان (ترجمه جلال ستاری)</td>
+        <td class="col-sentence">همین شباهت موجب شده است که هر دو نماد در بسیاری از نظام‌های اساطیری با جاودانگی، نوزایی و استمرار زندگی ارتباط یابند (دوبوکور، ۱۳۷۳: ۵۲–۵۳؛ بهمنی، ۱۳۸۹: ۵۶–۵۷؛ الیاده، ۱۳۷۲: ۱۷۵–۱۸۰).</td>
+        <td class="col-check"><input type="checkbox" class="check-box"></td>
+      </tr>
+  </tbody>
+</table>
+</div>
+
+<footer>
+  هر ردیف مربوط به یک منبع مستقل است؛ اگر چند منبع در یک جمله ذکر شده باشند، هر یک ردیف جداگانه دارد و متن جمله («متن مرتبط») بین آن ردیف‌ها تکرار می‌شود. صفحه مقاله بر اساس شماره‌گذاری PDF است. ردیف‌های قرمز یعنی نام نویسنده/سالِ ارجاع در فهرست منابع مقاله پیدا نشد و نیاز به بررسی دستی دارد. ستون «اصالت منبع» برای علامت‌گذاری دستی شما پس از بررسی هر ارجاع در نظر گرفته شده است.
+</footer>
+
+<script>
+  const searchBox = document.getElementById('searchBox');
+  const btnAll = document.getElementById('btnAll');
+  const btnFlag = document.getElementById('btnFlag');
+  const rows = Array.from(document.querySelectorAll('#tbody tr'));
+  let flagOnly = false;
+
+  function applyFilters() {
+    const q = searchBox.value.trim().toLowerCase();
+    rows.forEach(r => {
+      const text = r.innerText.toLowerCase();
+      const matchesSearch = !q || text.includes(q);
+      const matchesFlag = !flagOnly || r.dataset.found === 'false';
+      r.classList.toggle('hidden', !(matchesSearch && matchesFlag));
+    });
+  }
+
+  searchBox.addEventListener('input', applyFilters);
+  btnAll.addEventListener('click', () => {
+    flagOnly = false;
+    btnAll.classList.add('active');
+    btnFlag.classList.remove('active');
+    applyFilters();
+  });
+  btnFlag.addEventListener('click', () => {
+    flagOnly = true;
+    btnFlag.classList.add('active');
+    btnAll.classList.remove('active');
+    applyFilters();
+  });
+</script>
+
+</body>
+</html>
